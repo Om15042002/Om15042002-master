@@ -53,7 +53,7 @@ export class AddTaskComponent {
     if (this.taskform.valid) {
       this.service.addtask(this.taskform.value).subscribe((res) => {
         this.toastr.success('Success', 'task added sucessfully');
-        this.router.navigate(['login']);
+        this.router.navigate(['']);
       });
     } else {
       this.toastr.warning('Please fill all the details');

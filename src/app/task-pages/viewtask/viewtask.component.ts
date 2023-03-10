@@ -2,13 +2,24 @@ import { Component, ViewEncapsulation } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 // import { AngularFontAwesomeModule } from 'angular-font-awesome';
 import { NgbDateStruct, NgbCalendar, NgbDatepickerModule } from '@ng-bootstrap/ng-bootstrap';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule } from '@angular/forms';
 import { JsonPipe } from '@angular/common';
-import { FormBuilder ,Validators} from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from 'src/app/service/auth.service';
+import { UsertasksService } from 'src/app/service/usertasks.service';
 
+interface task {
+  taskid: number;
+  title: string;
+  description: string;
+  duedate: string;
+  dateadded: string;
+  isImportant: boolean;
+  isCompleted: boolean;
+  userid: number;
+}
 
 @Component({
   selector: 'app-viewtask',
@@ -16,64 +27,101 @@ import { AuthService } from 'src/app/service/auth.service';
   styleUrls: ['./viewtask.component.css']
 })
 export class ViewtaskComponent {
-  tasks = [{
-    id: 1,
-    title: "make a note dfgfdgdfgfg fgfgfgffgfgfgfg",
-    description: "asdfadsf",
-    deadline: "sdfdas",
-    dateAdded: "dasfdasf",
-    priority: true,
-    isCompleted: false
-  },
-  {
-    id: 2,
-    title: "go to bank",
-    description: "",
-    dateAdded: "",
-    deadline: "",
-    priority: true,
-    isCompleted: false
-  },
-  {
-    id: 3,
-    title: "meeting with team",
-    description: "",
-    deadline: "",
-    dateAdded: "",
-    priority: true,
-    isCompleted: false
-  },
-  {
-    id: 4,
-    title: "complete a front end",
-    description: "",
-    dateAdded: "",
-    deadline: "",
-    priority: true,
-    isCompleted: false
-  },
-  ]
+  tasks: task[]=[] ;
+  // tasks:any=[]
   closeResult: string | undefined;
   model: NgbDateStruct | undefined;
-  // date: { year: number; month: number; } | undefined;
+  filtermodel: NgbDateStruct | undefined;
+  // isTaskImportant:boolean=flase
+  markasdone=new FormControl()
+  importanttask=new FormControl()
 
-  // constructor(private calendar: NgbCalendar) {}
-  constructor(private modalService: NgbModal) { }
-  // selectToday() {
-  // 	this.model = this.calendar.getToday();
-  // }
+  filterbyduedate=new FormControl()
+  filterbycompletion=new FormControl()
+  filterbyimportant=new FormControl()
+
+  modifiedtitle=new FormControl();
+  modifieddescritption=new FormControl();
+  modifieddate=new FormControl();
+
+  
+  constructor(private modalService: NgbModal, private UsertasksService: UsertasksService,
+    private toastr: ToastrService,private builder: FormBuilder) {
+
+    this.getTask()
+   }
+   edittaskform = this.builder.group({
+    title: this.builder.control('', Validators.required),
+    description: this.builder.control(
+      '',
+      Validators.compose([Validators.required, Validators.minLength(20)])
+    ),
+    duedate: this.builder.control('', Validators.required),
+  });
   openVerticallyCentered(content: any) {
     this.modalService.open(content, { centered: true });
   }
-  deleteTask(taskId: number) {
+  openVerticallyFilterCentered(filtercontent: any) {
+    this.modalService.open(filtercontent, { centered: true });
+  }
+  edittaskdetails(){
+    let partialtask={title:this.modifiedtitle.value,description:this.modifieddescritption.value,duedate:this.modifieddate.value}
+  }
+  applyfilters(){
+    if(this.filterbyduedate.value){
+      this.tasks=this.tasks.filter((task)=>{
+        
+      })
+    }
+    else if(this.filterbycompletion.value){
+      this.tasks=this.tasks.filter((task)=>{
+        return task.isCompleted==true;
+      })
+    }
+    else if(this.filterbyimportant.value){
+      this.tasks=this.tasks.filter((task)=>{
+        return task.isImportant==true;
+      })
+    }
+  }
+  // changetaskstate(){
+  //   console.log(this.markasdone.value);
+  // }
+  // changeimportancestate(){
+  //   console.log(this.importanttask.value);
+  // }
+  deleteTask(taskid: number, userid: number) {
     this.tasks = this.tasks.filter((task) => {
-      return (task.id !== taskId) ? task : null;
+      return (task.taskid !== taskid) ? task : null;
+    })
+    this.UsertasksService.deletetask({ taskid: taskid, userid: userid }).subscribe((res:any) => {
+      if(res.msg=='success'){
+        console.log("task deleted successfully");
+        this.toastr.success('Success', 'task deleted sucessfully');
+      }
+      else if(res.msg=='error'){
+        this.toastr.warning('Could not delete the task!!');
+      }
     })
   }
-  // constructor(private modalService: NgbModal) {}
+  getTask() {
+    const userid: number = 4;
+    this.UsertasksService.gettasks(userid).subscribe((res:any) => {
+      console.log('====================================');
+      console.log(res.data);
+      console.log('====================================');
+      this.tasks=res.data
+    })
+  }
 
-  //   openVerticallyCentered(content: any) {
-  // 		this.modalService.open(content, { centered: true });
-  // 	}
+  edittask(task:task) {
+    task["isImportant"]=(this.importanttask.value==undefined || this.importanttask.value==null)?false:true;
+    task["isCompleted"]=this.markasdone.value;
+    console.log(task);
+    
+      this.UsertasksService.edittask(task).subscribe((res) => {
+        // this.tasks=res;
+      })
+  }
 
 }

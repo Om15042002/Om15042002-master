@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 // import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 @Injectable({
   providedIn: 'root'
 })
@@ -21,4 +21,22 @@ export class UsertasksService {
     return this.http.post(this.apiURL+'/addtask',task)
   }
 
+  gettasks(userid:number){
+    let queryParams = new HttpParams();
+    queryParams = queryParams.append("userid",userid);
+    return this.http.get(this.apiURL+"/gettask",{params:queryParams});
+  }
+
+  edittask(task:any){
+    console.log(task);
+    
+    return this.http.post(this.apiURL+'/edittask',task)
+  }
+
+  deletetask(requestobj:any){
+    let params = new HttpParams();
+    params = params.append('taskid',requestobj.taskid)
+    params = params.append('userid',requestobj.userid)
+    return this.http.delete(this.apiURL+'/deletetask',{params})
+  }
 }
