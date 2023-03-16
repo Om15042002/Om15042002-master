@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HeaderComponent } from './header/header.component';
 import { ToastmessageComponent } from './toastmessage/toastmessage.component';
-
+import {CommonPartsRoutingModule} from './common-parts-routing.module'
 
 
 @NgModule({
@@ -11,7 +11,8 @@ import { ToastmessageComponent } from './toastmessage/toastmessage.component';
     ToastmessageComponent
   ],
   imports: [
-    CommonModule
+    CommonModule,
+    CommonPartsRoutingModule
   ],
   exports:[
     HeaderComponent,
